@@ -68,7 +68,8 @@ app.post("/upload", upload, (req, res) => {
 app.delete("/remove/:imageName", (req, res) => {
   const { imageName } = req.params;
   try {
-    fs.unlinkSync(`./images/${imageName}`);
+    // fs.unlinkSync(`./images/${imageName}`);
+    fs.unlinkSync(`https://express-server-chi.vercel.app/${imageName}`);
     res.status(200).json({ message: "image deleted successfully !" });
   } catch (error) {
     res.status(500).json(error);
