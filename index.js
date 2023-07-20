@@ -1,10 +1,28 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Product = require("./models/productModel");
+const multer = require("multer");
+const fs = require("fs");
 const app = express();
 
 app.use(express.json());
+app.use(express.static("images"));
 
+// multer config
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // cb("helllllo", "./images");
+    cb(null, "./images");
+  },
+  filename: (req, file, cb) => {
+    const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, "-")}`;
+    // cb("whhhhy hel", fileName);
+    cb(null, fileName);
+  },
+});
+
+const upload = multer({ storage }).single("image");
 app.get("/", (req, res) => {
   res.json([
     { id: 1, name: "mohammed ashraf" },
@@ -33,12 +51,27 @@ app.get("/products/:prodId", async (req, res) => {
   }
 });
 
-app.post("/product", async (req, res) => {
+app.post("/products", async (req, res) => {
   try {
     const product = await Product.create(req.body);
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/upload", upload, (req, res) => {
+  const { file } = req;
+  res.json({ file_name: file.filename });
+});
+
+app.delete("/remove/:imageName", (req, res) => {
+  const { imageName } = req.params;
+  try {
+    fs.unlinkSync(`./images/${imageName}`);
+    res.status(200).json({ message: "image deleted successfully !" });
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
@@ -48,7 +81,7 @@ mongoose
   )
   .then(() => {
     console.log("connected");
-    app.listen(3000);
+    app.listen(3000 || process.env.PORT);
   })
   .catch(() => {
     console.log("errrorrr");
